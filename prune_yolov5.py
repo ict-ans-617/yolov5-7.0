@@ -33,6 +33,7 @@ from utils.plots import feature_visualization
 from utils.torch_utils import (ModelEMA,fuse_conv_and_bn, de_parallel, initialize_weights, model_info, profile, scale_img, select_device,
                                time_sync)
 
+import logging
 try:
     import thop  # for FLOPs computation
 except ImportError:
@@ -45,6 +46,8 @@ from nni.compression.pruning import (
     AGPPruner
 )
 from nni.compression.speedup import ModelSpeedup
+from nni.compression.speedup import replacer
+replacer._logger.setLevel(logging.WARNING)
 import torch
 from torchsummary import summary
 from models.yolo import *
@@ -164,7 +167,9 @@ if __name__ == '__main__':
     _, masks = pruner.compress()
     pruner.unwrap_model()
 
-    pruned_model = ModelSpeedup(model, dummy_input, masks).speedup_model()
+    model_speedup = ModelSpeedup(model, dummy_input, masks)
+    model_speedup.logger.setLevel(logging.WARNING)
+    pruned_model = model_speedup.speedup_model()
     print(model)
     
     # 保存剪枝后的模型
