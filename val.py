@@ -338,11 +338,6 @@ def run(
     for i, c in enumerate(ap_class):
         maps[c] = ap[i]
     
-    # 将输出保存到文本文件中
-    with open('output.txt', 'w') as f:
-        f.write(str((mp, mr, map50, map)))
-        f.write('\n')
-        f.write(str(t))
     return (mp, mr, map50, map, *(loss.cpu() / len(dataloader)).tolist()), maps, t
 
 
@@ -409,6 +404,12 @@ def main(opt):
                 np.savetxt(f, y, fmt='%10.4g')  # save
             os.system('zip -r study.zip study_*.txt')
             plot_val_study(x=x)  # plot
+
+
+def get_val_result(weights: str, device=""):
+    print(f"Getting validate results of {weights}")
+    results, maps, t = run(data=ROOT / 'data/VOC.yaml', weights=weights, task="val", device=device)
+    return {"mp": results[0], "mr": results[1], "map50": results[2], "t": t}
 
 
 if __name__ == "__main__":

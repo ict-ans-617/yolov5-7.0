@@ -33,6 +33,8 @@ from utils.plots import feature_visualization
 from utils.torch_utils import (ModelEMA,fuse_conv_and_bn, de_parallel, initialize_weights, model_info, profile, scale_img, select_device,
                                time_sync)
 
+from val import get_val_result
+
 import logging
 try:
     import thop  # for FLOPs computation
@@ -82,21 +84,8 @@ if __name__ == '__main__':
     original_model_size = os.path.getsize(opt.pre_weights) / (1024 * 1024)  # 将字节转换为MB
     print(f"剪枝之前模型 {opt.pre_weights} 的存储占用大小: {original_model_size:.2f} MB")
 
-    os.system(f"python val.py --weights {opt.pre_weights}")
-    # 读取输出的值
-    with open('output.txt', 'r') as f:
-        lines = f.readlines()
-        output1 = eval(lines[0])
-        output2 = eval(lines[1])
-    # 删除文本文件
-    os.remove('output.txt')
-    # 从output中获取map50等值
-    mp, mr, map50, map = output1
-    t1, t2, t3 = output2
-    total_time = t1+t2+t3
-    print(f"mp: {mp}, mr: {mr}, map50: {map50}, map: {map}")
-    print(f"pre-process: {t1}ms, inference: {t2}ms, NMS: {t3}ms, total_time: {total_time}ms")
-
+    val_outputs = get_val_result(weights=opt.pre_weights, device=opt.device)
+    print(f"{val_outputs = }")
     # Options
     if opt.line_profile:  # profile layer by layer
         print("profile layer by layer")
@@ -183,7 +172,6 @@ if __name__ == '__main__':
     pruned_model_size = os.path.getsize(output_model_path) / (1024 * 1024)  # 将字节转换为MB
     print(f"剪枝之后模型 {output_model_path} 的存储占用大小: {pruned_model_size:.2f} MB")
 
-
-
-    
+    val_outputs = get_val_result(weights=output_model_path, device=opt.device)
+    print(f"{val_outputs = }")
 
