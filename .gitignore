@@ -259,3 +259,5 @@ runs
 datasets
 *.zip
 *.pth
+
+output*
