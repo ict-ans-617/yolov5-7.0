@@ -176,10 +176,12 @@ if __name__ == '__main__':
     ckpt = torch.load("yolov5m.pt")
     ckpt["model"] = deepcopy(de_parallel(model))
     ckpt["date"] = None
-    torch.save(ckpt,f'pruned_{opt.cfg.split("/")[-1].split(".")[0]}_{opt.pruner}s_{config_list[0]["sparse_ratio"]}.pt')
+    output_model_path = f'pruned_{Path(opt.cfg).stem}_{opt.pruner}s_{config_list[0]["sparse_ratio"]}.pt'
+    print(f"Saving pruned model to {output_model_path}")
+    torch.save(ckpt, output_model_path)
     print('Pruned model paramater number: ', sum([param.numel() for param in model.parameters()]))
-    pruned_model_size = os.path.getsize(f'pruned_{opt.cfg.split("/")[-1].split(".")[0]}_{opt.pruner}s_{config_list[0]["sparse_ratio"]}.pt') / (1024 * 1024)  # 将字节转换为MB
-    print(f"剪枝之后模型的存储占用大小: {pruned_model_size:.2f} MB")
+    pruned_model_size = os.path.getsize(output_model_path) / (1024 * 1024)  # 将字节转换为MB
+    print(f"剪枝之后模型 {output_model_path} 的存储占用大小: {pruned_model_size:.2f} MB")
 
 
 
