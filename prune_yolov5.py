@@ -170,7 +170,7 @@ if __name__ == '__main__':
     model_speedup = ModelSpeedup(model, dummy_input, masks)
     model_speedup.logger.setLevel(logging.WARNING)
     pruned_model = model_speedup.speedup_model()
-    print(model)
+    # print(model)
     
     # 保存剪枝后的模型
     ckpt = torch.load("yolov5m.pt")
