@@ -94,35 +94,28 @@ if __name__ == '__main__':
     print(f"mp: {mp}, mr: {mr}, map50: {map50}, map: {map}")
     print(f"pre-process: {t1}ms, inference: {t2}ms, NMS: {t3}ms, total_time: {total_time}ms")
 
-    # # Options
-    # if opt.line_profile:  # profile layer by layer
-    #     model(im, profile=True)
-    #     print("kkkkkkkk")
+    # Options
+    if opt.line_profile:  # profile layer by layer
+        print("profile layer by layer")
+        model(im, profile=True)
 
-    # elif opt.profile:  # profile forward-backward
-    #     results = profile(input=im, ops=[model], n=3)
-    #     print("lllllllll")
+    elif opt.profile:  # profile forward-backward
+        print("profile forward-backward")
+        results = profile(input=im, ops=[model], n=3)
 
 
-    # elif opt.test:  # test all models
-    #     for cfg in Path(ROOT / 'models').rglob('yolo*.yaml'):
-    #         try:
-    #             _ = Model(cfg)
-    #         except Exception as e:
-    #             print(f'Error in {cfg}: {e}')
+    elif opt.test:  # test all models
+        print("test all models")
+        for cfg in Path(ROOT / 'models').rglob('yolo*.yaml'):
+            try:
+                _ = Model(cfg)
+            except Exception as e:
+                print(f'Error in {cfg}: {e}')
 
-    # else:  # report fused model summary
-    #     # print("hhhhhhhhh")
-    #     print(model)
-    #     # original_conv1_weights = model.model[0].conv.weight.data.clone()
-    #     model.fuse()
-    #     print(model)
-    #     # conv1_weights = model.model[0].conv.weight.data.clone()
-    #     # print("Original Conv1 Weights:")
-    #     # print(original_conv1_weights)
+    else:  # report fused model summary
+        print("report fused model summary")
+        model.fuse()
 
-    #     # print("\nConv1 Weights:")
-    #     # print(conv1_weights)
     print('model paramater number: ', sum([param.numel() for param in model.parameters()]))
     
 
