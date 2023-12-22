@@ -77,7 +77,7 @@ if __name__ == '__main__':
     model = ckpt['model'].to(device)  # 获取模型对象并将其移动到指定设备
     model.float()  # 将模型参数转换为全精度浮点数
     original_model_size = os.path.getsize(opt.pre_weights) / (1024 * 1024)  # 将字节转换为MB
-    print(f"剪枝之前模型的存储占用大小: {original_model_size:.2f} MB")
+    print(f"剪枝之前模型 {opt.pre_weights} 的存储占用大小: {original_model_size:.2f} MB")
 
     os.system(f"python val.py --weights {opt.pre_weights}")
     # 读取输出的值
