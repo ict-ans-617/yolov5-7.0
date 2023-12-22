@@ -53,7 +53,7 @@ from models.yolo import *
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--cfg', type=str, default='yolov5m_voc.yaml', help='model.yaml')
+    parser.add_argument('--cfg', type=str, default='yolov5s_voc.yaml', help='model.yaml')
     parser.add_argument('--batch-size', type=int, default=1, help='total batch size for all GPUs')
     parser.add_argument('--device', default='0', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     parser.add_argument('--profile', action='store_true', help='profile model speed')
@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
     #prune
     parser.add_argument('--pruner', default='fpgm', type=str, help='pruner: agp|taylor|fpgm')
-    parser.add_argument('--pre_weights', type=str, default="./runs/train/exp103/weights/best.pt", help='pretrain weights for prune')
+    parser.add_argument('--pre_weights', type=str, default="./runs/train/exp89/weights/best.pt", help='pretrain weights for prune')
 
     opt = parser.parse_args()
     opt.cfg = check_yaml(opt.cfg)  # check YAML
