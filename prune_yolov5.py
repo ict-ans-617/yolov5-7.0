@@ -68,12 +68,17 @@ if __name__ == '__main__':
     #prune
     parser.add_argument('--pruner', default='fpgm', type=str, help='pruner: agp|taylor|fpgm')
     parser.add_argument('--pre_weights', type=str, default="./runs/train/exp89/weights/best.pt", help='pretrain weights for prune')
+    parser.add_argument('--output_dir', type=str, default='./',
+                        help='directory to output')
 
     opt = parser.parse_args()
     opt.cfg = check_yaml(opt.cfg)  # check YAML
     print_args(vars(opt))
     device = select_device(opt.device)
     torch.cuda.empty_cache()
+
+    output_dir = Path(opt.output_dir)
+    output_dir.mkdir(exist_ok=True)
 
     # Create model
     im = torch.rand(opt.batch_size, 3, 640, 640).to(device)
@@ -167,7 +172,8 @@ if __name__ == '__main__':
     ckpt = torch.load(container_model_path)
     ckpt["model"] = deepcopy(de_parallel(model))
     ckpt["date"] = None
-    output_model_path = f'pruned_{Path(opt.cfg).stem}_{opt.pruner}s_{config_list[0]["sparse_ratio"]}.pt'
+
+    output_model_path = output_dir / f'pruned_{Path(opt.cfg).stem}_{opt.pruner}s_{config_list[0]["sparse_ratio"]}.pt'
     print(f"Saving pruned model to {output_model_path}")
     torch.save(ckpt, output_model_path)
     print('Pruned model paramater number: ', sum([param.numel() for param in model.parameters()]))
