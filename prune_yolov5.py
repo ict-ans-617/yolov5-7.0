@@ -70,6 +70,8 @@ if __name__ == '__main__':
     parser.add_argument('--pre_weights', type=str, default="./runs/train/exp89/weights/best.pt", help='pretrain weights for prune')
     parser.add_argument('--output_dir', type=str, default='./',
                         help='directory to output')
+    parser.add_argument('--calc_initial_yaml', action='store_true', default=False)
+    parser.add_argument('--calc_final_yaml', action='store_true', default=False)
 
     opt = parser.parse_args()
     opt.cfg = check_yaml(opt.cfg)  # check YAML
@@ -91,6 +93,21 @@ if __name__ == '__main__':
 
     val_outputs = get_val_result(weights=opt.pre_weights, device=opt.device)
     print(f"{val_outputs = }")
+
+    if opt.calc_initial_yaml:
+        params, gflops = model_info(model)
+        map50 = float(val_outputs["map50"])
+        infer_time = float(np.array(val_outputs["t"]).sum())
+        with open(output_dir / 'logs.yaml', 'w') as f:
+            yaml_data = {
+                'map50': {'baseline': round(map50, 2), 'method': None},
+                'FLOPs': {'baseline': round(gflops, 2), 'method': None},
+                'Parameters': {'baseline': round(params/1e6, 2), 'method': None},
+                'Infer_times': {'baseline': round(infer_time, 2), 'method': None},
+                'Storage': {'baseline': round(original_model_size, 2), 'method': None},
+            }
+            yaml.dump(yaml_data, f)
+
     # Options
     if opt.line_profile:  # profile layer by layer
         print("profile layer by layer")
@@ -182,4 +199,21 @@ if __name__ == '__main__':
 
     val_outputs = get_val_result(weights=output_model_path, device=opt.device)
     print(f"{val_outputs = }")
+
+    if opt.calc_final_yaml:
+        yaml_data = yaml.safe_load(open(output_dir / 'logs.yaml', 'r'))
+        params, gflops = model_info(model)
+        map50 = float(val_outputs["map50"])
+        infer_time = float(np.array(val_outputs["t"]).sum())
+        with open(output_dir / 'logs.yaml', 'w') as f:
+            yaml_data = {
+                'map50': {'baseline': yaml_data['map50']['baseline'], 'method': round(map50, 2)},
+                'FLOPs': {'baseline': yaml_data['FLOPs']['baseline'], 'method': round(gflops, 2)},
+                'Parameters': {'baseline': yaml_data['Parameters']['baseline'], 'method': round(params/1e6, 2)},
+                'Infer_times': {'baseline': yaml_data['Infer_times']['baseline'], 'method': round(infer_time, 2)},
+                'Storage': {'baseline': yaml_data['Storage']['baseline'], 'method': round(pruned_model_size, 2)},
+                'Output_file': str(output_model_path),
+            }
+            yaml.dump(yaml_data, f)
+
 
