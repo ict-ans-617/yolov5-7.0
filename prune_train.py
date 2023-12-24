@@ -41,6 +41,7 @@ ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
 from models.yolo import *
 import val as validate  # for end-of-epoch mAP
+from val import get_val_result
 from models.experimental import attempt_load
 from models.yolo import Model
 from utils.autoanchor import check_anchors
@@ -430,6 +431,28 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
 
         callbacks.run('on_train_end', last, best, epoch, results)
 
+    storage = os.path.getsize(best) / (1024 * 1024)
+    print(f"剪枝之后模型 {best} 的存储占用大小: {storage:.2f} MB")
+
+    val_outputs = get_val_result(weights=best, device=device)
+    print(f"{val_outputs = }")
+
+    params, gflops = model_info(model)
+    map50 = float(val_outputs["map50"])
+    infer_time = float(np.array(val_outputs["t"]).sum())
+    if opt.calc_final_yaml:
+        yaml_log_path = Path(opt.log_dir) / 'logs.yaml'
+        yaml_data = yaml.safe_load(open(yaml_log_path, 'r'))
+        with open(yaml_log_path, 'w') as f:
+            yaml_data = {
+                'map50': {'baseline': yaml_data['map50']['baseline'], 'method': round(map50, 2)},
+                'FLOPs': {'baseline': yaml_data['FLOPs']['baseline'], 'method': round(gflops, 2)},
+                'Parameters': {'baseline': yaml_data['Parameters']['baseline'], 'method': round(params/1e6, 2)},
+                'Infer_times': {'baseline': yaml_data['Infer_times']['baseline'], 'method': round(infer_time, 2)},
+                'Storage': {'baseline': yaml_data['Storage']['baseline'], 'method': round(storage, 2)},
+                'Output_file': str(best),
+            }
+            yaml.dump(yaml_data, f)
     torch.cuda.empty_cache()
     return results
 
@@ -453,7 +476,7 @@ def parse_opt(known=False):
     parser.add_argument('--bucket', type=str, default='', help='gsutil bucket')
     parser.add_argument('--cache', type=str, nargs='?', const='ram', help='image --cache ram/disk')
     parser.add_argument('--image-weights', action='store_true', help='use weighted image selection for training')
-    parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
+    parser.add_argument('--device', default='0', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     parser.add_argument('--multi-scale', action='store_true', help='vary img-size +/- 50%%')
     parser.add_argument('--single-cls', action='store_true', help='train multi-class data as single-class')
     parser.add_argument('--optimizer', type=str, choices=['SGD', 'Adam', 'AdamW'], default='SGD', help='optimizer')
