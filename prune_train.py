@@ -436,11 +436,11 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
 
 def parse_opt(known=False):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', type=str, default=ROOT / 'pruned_yolov5m_voc_FPGM_0.15.pt', help='initial weights path')
+    parser.add_argument('--weights', type=str, default=ROOT / 'pruned_yolov5s_voc_fpgms_0.15.pt', help='initial weights path')
     parser.add_argument('--cfg', type=str, default=ROOT / 'models/yolov5m_voc.yaml', help='model.yaml path')
     parser.add_argument('--data', type=str, default=ROOT / 'data/VOC.yaml', help='dataset.yaml path')
     parser.add_argument('--hyp', type=str, default=ROOT / 'data/hyps/hyp.scratch-low.yaml', help='hyperparameters path')
-    parser.add_argument('--epochs', type=int, default=20, help='total training epochs')
+    parser.add_argument('--epochs', type=int, default=1, help='total training epochs')
     parser.add_argument('--batch-size', type=int, default=32, help='total batch size for all GPUs, -1 for autobatch')
     parser.add_argument('--imgsz', '--img', '--img-size', type=int, default=640, help='train, val image size (pixels)')
     parser.add_argument('--rect', action='store_true', help='rectangular training')
@@ -477,6 +477,9 @@ def parse_opt(known=False):
     parser.add_argument('--bbox_interval', type=int, default=-1, help='Set bounding-box image logging interval')
     parser.add_argument('--artifact_alias', type=str, default='latest', help='Version of dataset artifact to use')
 
+    parser.add_argument('--log_dir', default='./log/prune', help='The directory used to save the trained models', type=str)
+    parser.add_argument('--calc_final_yaml', action='store_true', default=False)
+
     return parser.parse_known_args()[0] if known else parser.parse_args()
 
 
@@ -511,7 +514,10 @@ def main(opt, callbacks=Callbacks()):
             opt.exist_ok, opt.resume = opt.resume, False  # pass resume to exist_ok and disable resume
         if opt.name == 'cfg':
             opt.name = Path(opt.cfg).stem  # use model.yaml as name
-        opt.save_dir = str(increment_path(Path(opt.project) / opt.name, exist_ok=opt.exist_ok))
+        # opt.save_dir = str(increment_path(Path(opt.project) / opt.name, exist_ok=opt.exist_ok))
+        opt.save_dir = Path(opt.log_dir) / 'runs/train/exp'
+        opt.save_dir.mkdir(parents=True, exist_ok=True)
+        opt.save_dir = str(opt.save_dir)
 
     # DDP mode
     device = select_device(opt.device, batch_size=opt.batch_size)
