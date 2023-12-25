@@ -431,6 +431,11 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
 
         callbacks.run('on_train_end', last, best, epoch, results)
 
+    new_best_path = opt.log_dir / f"prune_trained_{Path(weights).name}"
+    os.rename(best, new_best_path)
+    print(f"move {best} to {new_best_path}")
+    best = new_best_path
+    del new_best_path
     storage = os.path.getsize(best) / (1024 * 1024)
     print(f"剪枝之后模型 {best} 的存储占用大小: {storage:.2f} MB")
 
@@ -538,7 +543,8 @@ def main(opt, callbacks=Callbacks()):
         if opt.name == 'cfg':
             opt.name = Path(opt.cfg).stem  # use model.yaml as name
         # opt.save_dir = str(increment_path(Path(opt.project) / opt.name, exist_ok=opt.exist_ok))
-        opt.save_dir = Path(opt.log_dir) / 'runs/train/exp'
+        opt.log_dir = Path(opt.log_dir)
+        opt.save_dir = opt.log_dir / 'runs/train/exp'
         opt.save_dir.mkdir(parents=True, exist_ok=True)
         opt.save_dir = str(opt.save_dir)
 
