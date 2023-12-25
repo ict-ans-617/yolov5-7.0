@@ -18,10 +18,11 @@ dataset_path=${12}
 
 
 source ~/conda3/etc/profile.d/conda.sh
-conda activate yolo
+# conda activate yolo
 
 if [ $prune_method != 'null' ] && [ $quan_method == 'null' ] # prune
 then
+    conda activate yolo
     mkdir -p ${output_path}
     CUDA_VISIBLE_DEVICES=${gpus} \
         python ${model_path}/prune_yolov5.py \
@@ -40,6 +41,24 @@ then
             --log_dir=${output_path} \
             --epochs=${ft_epochs} \
             --calc_final_yaml \
+
+
+    conda deactivate
+
+elif [ $prune_method == 'null' ] && [ $quan_method != 'null' ] # quan
+then
+    conda activate yolo-quant
+
+    mkdir -p ${output_path}
+    CUDA_VISIBLE_DEVICES=${gpus} \
+        python ${model_path}/export.py \
+            --weights=${input_path}/best.pt \
+            --output_dir=${output_path} \
+            --calc_initial_yaml \
+            --calc_final_yaml \
+
+
+    conda deactivate
 
 fi
 
