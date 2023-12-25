@@ -642,7 +642,8 @@ def parse_opt():
     parser.add_argument(
         '--include',
         nargs='+',
-        default=['torchscript'],
+        # default=['torchscript'],
+        default=['onnx', 'engine'],
         help='torchscript, onnx, openvino, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle')
     opt = parser.parse_args()
     print_args(vars(opt))
@@ -701,22 +702,32 @@ def main(opt):
         del opt_vars["calc_initial_yaml"]
         del opt_vars["calc_final_yaml"]
         del opt_vars["output_dir"]
-        run(**opt_vars)
-        output_engine_path = Path(opt.weights).with_suffix('.engine')
+        output_files = run(**opt_vars)
+        print(f"{output_files = }")
+        output_engine_path = None
+        for output_file in output_files:
+            if output_file.endswith('.engine'):
+                output_engine_path = Path(output_file)
         print(f"量化之后")
-        map50, _, _, infer_time, model_size = get_model_info(str(output_engine_path), device=opt.device, is_test_flops=False)
-        if opt.calc_final_yaml:
-            yaml_data = yaml.safe_load(open(opt.output_dir / 'logs.yaml', 'r'))
-            with open(opt.output_dir / 'logs.yaml', 'w') as f:
-                yaml_data = {
-                    'map50': {'baseline': yaml_data['map50']['baseline'], 'method': round(map50, 2)},
-                    'FLOPs': {'baseline': yaml_data['FLOPs']['baseline'], 'method': round(gflops, 2)},
-                    'Parameters': {'baseline': yaml_data['Parameters']['baseline'], 'method': round(params/1e6, 2)},
-                    'Infer_times': {'baseline': yaml_data['Infer_times']['baseline'], 'method': round(infer_time, 2)},
-                    'Storage': {'baseline': yaml_data['Storage']['baseline'], 'method': round(model_size, 2)},
-                    'Output_file': str(output_engine_path),
-                }
-                yaml.dump(yaml_data, f)
+        if output_engine_path is not None:
+            new_output_path = opt.output_dir / output_engine_path.name
+            os.rename(output_engine_path, new_output_path)
+            print(f"move {output_engine_path} to {new_output_path}")
+            output_engine_path = new_output_path
+            del new_output_path
+            map50, _, _, infer_time, model_size = get_model_info(str(output_engine_path), device=opt.device, is_test_flops=False)
+            if opt.calc_final_yaml:
+                yaml_data = yaml.safe_load(open(opt.output_dir / 'logs.yaml', 'r'))
+                with open(opt.output_dir / 'logs.yaml', 'w') as f:
+                    yaml_data = {
+                        'map50': {'baseline': yaml_data['map50']['baseline'], 'method': round(map50, 2)},
+                        'FLOPs': {'baseline': yaml_data['FLOPs']['baseline'], 'method': round(gflops, 2)},
+                        'Parameters': {'baseline': yaml_data['Parameters']['baseline'], 'method': round(params/1e6, 2)},
+                        'Infer_times': {'baseline': yaml_data['Infer_times']['baseline'], 'method': round(infer_time, 2)},
+                        'Storage': {'baseline': yaml_data['Storage']['baseline'], 'method': round(model_size, 2)},
+                        'Output_file': str(output_engine_path),
+                    }
+                    yaml.dump(yaml_data, f)
 
 
 if __name__ == '__main__':
