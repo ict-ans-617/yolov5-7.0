@@ -285,9 +285,8 @@ def model_info(model, verbose=False, imgsz=640):
     stride = max(int(model.stride.max()), 32) if hasattr(model, 'stride') else 32  # max stride
     im = torch.empty((1, p.shape[1], stride, stride), device=p.device)  # input image in BCHW format
     model_dtype = next(model.parameters()).dtype
-    print(f"{model_dtype = }")
     im = im.to(model_dtype)
-    print(f"{im.dtype = }")
+    print(f"model_info :  {model_dtype = }  {im.dtype = }")
     flops = thop.profile(deepcopy(model), inputs=(im,), verbose=False)[0] / 1E9 * 2  # stride GFLOPs
     imgsz = imgsz if isinstance(imgsz, list) else [imgsz, imgsz]  # expand if int/float
     gflops = flops * imgsz[0] / stride * imgsz[1] / stride
