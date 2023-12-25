@@ -655,7 +655,7 @@ import numpy as np
 from copy import deepcopy
 
 
-def get_model_info(model_path: str, device):
+def get_model_info(model_path: str, device, is_test_flops=True):
     print(f"getting model info : {model_path}")
     model_size = os.path.getsize(model_path) / (1024 * 1024)  # 将字节转换为MB
     print(f"模型 {model_path} 的存储占用大小: {model_size:.2f} MB")
@@ -663,16 +663,19 @@ def get_model_info(model_path: str, device):
     val_outputs = get_val_result(weights=model_path, device=device)
     print(f"{val_outputs = }")
 
-    device = select_device(device)
-    ckpt = torch.load(model_path, map_location='cpu')  # 加载预训练权重
-    print(f"{type(ckpt) = }")
-    if isinstance(ckpt, dict):
-        model = ckpt['model'].to(device)  # 获取模型对象并将其移动到指定设备
-    else:
-        model = ckpt.to(device)  # 获取模型对象并将其移动到指定设备
-    # model.float()  # 将模型参数转换为全精度浮点数
-    # model = attempt_load(model_path, device=device, inplace=True, fuse=True)  # load FP32 model
-    params, gflops = model_info(model)
+    params, gflops = -1, -1
+    if is_test_flops:
+        device = select_device(device)
+        ckpt = torch.load(model_path, map_location='cpu')  # 加载预训练权重
+        print(f"{type(ckpt) = }")
+        if isinstance(ckpt, dict):
+            model = ckpt['model'].to(device)  # 获取模型对象并将其移动到指定设备
+        else:
+            model = ckpt.to(device)  # 获取模型对象并将其移动到指定设备
+        # model.float()  # 将模型参数转换为全精度浮点数
+        # model = attempt_load(model_path, device=device, inplace=True, fuse=True)  # load FP32 model
+        params, gflops = model_info(model)
+
     map50 = float(val_outputs["map50"])
     infer_time = float(np.array(val_outputs["t"]).mean())
     return map50, gflops, params, infer_time, model_size
@@ -682,9 +685,9 @@ def main(opt):
     for opt.weights in (opt.weights if isinstance(opt.weights, list) else [opt.weights]):
         opt.output_dir = Path(opt.output_dir)
         opt.output_dir.mkdir(exist_ok=True)
+        print(f"量化之前")
+        map50, gflops, params, infer_time, model_size = get_model_info(opt.weights, device=opt.device)
         if opt.calc_initial_yaml:
-            print(f"量化之前")
-            map50, gflops, params, infer_time, model_size = get_model_info(opt.weights, device=opt.device)
             with open(opt.output_dir / 'logs.yaml', 'w') as f:
                 yaml_data = {
                     'map50': {'baseline': round(map50, 2), 'method': None},
@@ -699,6 +702,21 @@ def main(opt):
         del opt_vars["calc_final_yaml"]
         del opt_vars["output_dir"]
         run(**opt_vars)
+        output_engine_path = Path(opt.weights).with_suffix('.engine')
+        print(f"量化之后")
+        map50, _, _, infer_time, model_size = get_model_info(str(output_engine_path), device=opt.device, is_test_flops=False)
+        if opt.calc_final_yaml:
+            yaml_data = yaml.safe_load(open(opt.output_dir / 'logs.yaml', 'r'))
+            with open(opt.output_dir / 'logs.yaml', 'w') as f:
+                yaml_data = {
+                    'map50': {'baseline': yaml_data['map50']['baseline'], 'method': round(map50, 2)},
+                    'FLOPs': {'baseline': yaml_data['FLOPs']['baseline'], 'method': round(gflops, 2)},
+                    'Parameters': {'baseline': yaml_data['Parameters']['baseline'], 'method': round(params/1e6, 2)},
+                    'Infer_times': {'baseline': yaml_data['Infer_times']['baseline'], 'method': round(infer_time, 2)},
+                    'Storage': {'baseline': yaml_data['Storage']['baseline'], 'method': round(model_size, 2)},
+                    'Output_file': str(output_engine_path),
+                }
+                yaml.dump(yaml_data, f)
 
 
 if __name__ == '__main__':
