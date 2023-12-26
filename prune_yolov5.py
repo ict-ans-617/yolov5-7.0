@@ -212,7 +212,7 @@ if __name__ == '__main__':
                 'Parameters': {'baseline': yaml_data['Parameters']['baseline'], 'method': round(params/1e6, 2)},
                 'Infer_times': {'baseline': yaml_data['Infer_times']['baseline'], 'method': round(infer_time, 2)},
                 'Storage': {'baseline': yaml_data['Storage']['baseline'], 'method': round(pruned_model_size, 2)},
-                'Output_file': str(output_model_path),
+                # 'Output_file': str(output_model_path),
             }
             yaml.dump(yaml_data, f)
 
