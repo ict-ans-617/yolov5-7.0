@@ -60,6 +60,44 @@ then
 
     conda deactivate
 
+elif [ $prune_method != 'null' ] && [ $quan_method != 'null' ] # prune and quan
+then
+    conda activate yolo
+    mkdir -p ${output_path}
+    CUDA_VISIBLE_DEVICES=${gpus} \
+        python ${model_path}/prune_yolov5.py \
+            --device=${gpus} \
+            --pre_weights=${input_path}/best.pt \
+            --pruner=${prune_method} \
+            --output_dir=${output_path} \
+            --calc_initial_yaml \
+            --calc_final_yaml \
+
+    CUDA_VISIBLE_DEVICES=${gpus} \
+        python ${model_path}/prune_train.py \
+            --device=${gpus} \
+            --weights=${output_path}/pruned_yolov5s_voc_fpgms_0.15.pt \
+            --batch-size=${ft_bs} \
+            --log_dir=${output_path} \
+            --epochs=${ft_epochs} \
+            # --calc_final_yaml \
+
+
+    conda deactivate
+
+    conda activate yolo-quant
+
+    mkdir -p ${output_path}
+    CUDA_VISIBLE_DEVICES=${gpus} \
+        python ${model_path}/export.py \
+            --weights=${output_path}/prune_trained_pruned_yolov5s_voc_fpgms_0.15.pt \
+            --output_dir=${output_path} \
+            --calc_final_yaml \
+            # --calc_initial_yaml \
+
+
+    conda deactivate
+
 fi
 
 conda deactivate
