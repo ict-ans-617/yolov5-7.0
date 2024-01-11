@@ -1,6 +1,6 @@
 compression_path="algorithms/compression"
 nets_path="${compression_path}/nets"
-model_path="${nets_path}/yolov5-7.0"
+model_path="${nets_path}/yolov5_7"
 
 
 dataset=$1
