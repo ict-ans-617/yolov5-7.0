@@ -97,7 +97,7 @@ if __name__ == '__main__':
     if opt.calc_initial_yaml:
         params, gflops = model_info(model)
         map50 = float(val_outputs["map50"])
-        infer_time = float(np.array(val_outputs["t"]).sum())
+        infer_time = float(val_outputs["t"][1])
         with open(output_dir / 'logs.yaml', 'w') as f:
             yaml_data = {
                 'map50': {'baseline': round(map50, 2), 'method': None},
@@ -204,7 +204,7 @@ if __name__ == '__main__':
         yaml_data = yaml.safe_load(open(output_dir / 'logs.yaml', 'r'))
         params, gflops = model_info(model)
         map50 = float(val_outputs["map50"])
-        infer_time = float(np.array(val_outputs["t"]).sum())
+        infer_time = float(val_outputs["t"][1])
         with open(output_dir / 'logs.yaml', 'w') as f:
             yaml_data = {
                 'map50': {'baseline': yaml_data['map50']['baseline'], 'method': round(map50, 2)},

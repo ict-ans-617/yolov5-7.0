@@ -444,7 +444,7 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
 
     params, gflops = model_info(model)
     map50 = float(val_outputs["map50"])
-    infer_time = float(np.array(val_outputs["t"]).sum())
+    infer_time = float(val_outputs["t"][1])
     if opt.calc_final_yaml:
         yaml_log_path = Path(opt.log_dir) / 'logs.yaml'
         yaml_data = yaml.safe_load(open(yaml_log_path, 'r'))

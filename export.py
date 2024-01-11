@@ -678,7 +678,7 @@ def get_model_info(model_path: str, device, is_test_flops=True):
         params, gflops = model_info(model)
 
     map50 = float(val_outputs["map50"])
-    infer_time = float(np.array(val_outputs["t"]).mean())
+    infer_time = float(val_outputs["t"][1])
     return map50, gflops, params, infer_time, model_size
 
 
