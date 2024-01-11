@@ -56,6 +56,7 @@ then
             --output_dir=${output_path} \
             --calc_initial_yaml \
             --calc_final_yaml \
+            --half
 
 
     conda deactivate
@@ -72,6 +73,7 @@ then
             --output_dir=${output_path} \
             --calc_initial_yaml \
             --calc_final_yaml \
+            --val_batch_size 1
 
     CUDA_VISIBLE_DEVICES=${gpus} \
         python ${model_path}/prune_train.py \
@@ -93,6 +95,7 @@ then
             --weights=${output_path}/prune_trained_pruned_yolov5s_voc_fpgms_0.15.pt \
             --output_dir=${output_path} \
             --calc_final_yaml \
+            --half
             # --calc_initial_yaml \
 
 

@@ -439,7 +439,7 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
     storage = os.path.getsize(best) / (1024 * 1024)
     print(f"剪枝之后模型 {best} 的存储占用大小: {storage:.2f} MB")
 
-    val_outputs = get_val_result(weights=best, device=device)
+    val_outputs = get_val_result(weights=best, device=device, batch_size=opt.val_batch_size)
     print(f"{val_outputs = }")
 
     params, gflops = model_info(model)
@@ -470,6 +470,7 @@ def parse_opt(known=False):
     parser.add_argument('--hyp', type=str, default=ROOT / 'data/hyps/hyp.scratch-low.yaml', help='hyperparameters path')
     parser.add_argument('--epochs', type=int, default=1, help='total training epochs')
     parser.add_argument('--batch-size', type=int, default=32, help='total batch size for all GPUs, -1 for autobatch')
+    parser.add_argument('--val_batch_size', type=int, default=32, help='total batch size for all GPUs')
     parser.add_argument('--imgsz', '--img', '--img-size', type=int, default=640, help='train, val image size (pixels)')
     parser.add_argument('--rect', action='store_true', help='rectangular training')
     parser.add_argument('--resume', nargs='?', const=True, default=False, help='resume most recent training')

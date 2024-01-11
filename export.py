@@ -617,6 +617,7 @@ def parse_opt():
     parser.add_argument('--weights', nargs='+', type=str, default=ROOT / 'yolov5s.pt', help='model.pt path(s)')
     parser.add_argument('--imgsz', '--img', '--img-size', nargs='+', type=int, default=[640, 640], help='image (h, w)')
     parser.add_argument('--batch-size', type=int, default=1, help='batch size')
+    parser.add_argument('--val_batch_size', type=int, default=1, help='total batch size for all GPUs')
     parser.add_argument('--device', default='0', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     parser.add_argument('--half', action='store_true', help='FP16 half-precision export')
     parser.add_argument('--inplace', action='store_true', help='set YOLOv5 Detect() inplace=True')
@@ -661,7 +662,7 @@ def get_model_info(model_path: str, device, is_test_flops=True):
     model_size = os.path.getsize(model_path) / (1024 * 1024)  # 将字节转换为MB
     print(f"模型 {model_path} 的存储占用大小: {model_size:.2f} MB")
 
-    val_outputs = get_val_result(weights=model_path, device=device)
+    val_outputs = get_val_result(weights=model_path, device=device, batch_size=opt.val_batch_size)
     print(f"{val_outputs = }")
 
     params, gflops = -1, -1
@@ -702,6 +703,7 @@ def main(opt):
         del opt_vars["calc_initial_yaml"]
         del opt_vars["calc_final_yaml"]
         del opt_vars["output_dir"]
+        del opt_vars["val_batch_size"]
         output_files = run(**opt_vars)
         print(f"{output_files = }")
         output_engine_path = None

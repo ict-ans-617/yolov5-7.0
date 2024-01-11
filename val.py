@@ -406,9 +406,9 @@ def main(opt):
             plot_val_study(x=x)  # plot
 
 
-def get_val_result(weights: str, device=""):
+def get_val_result(weights: str, device="", batch_size=32):
     print(f"Getting validate results of {weights}")
-    results, maps, t = run(data=ROOT / 'data/VOC.yaml', weights=weights, task="val", device=device)
+    results, maps, t = run(data=ROOT / 'data/VOC.yaml', weights=weights, batch_size=batch_size, task="val", device=device)
     return {"mp": results[0], "mr": results[1], "map50": results[2], "t": t}
 
 

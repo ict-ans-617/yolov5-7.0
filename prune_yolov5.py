@@ -60,6 +60,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--cfg', type=str, default='yolov5s_voc.yaml', help='model.yaml')
     parser.add_argument('--batch-size', type=int, default=1, help='total batch size for all GPUs')
+    parser.add_argument('--val_batch_size', type=int, default=32, help='total batch size for all GPUs')
     parser.add_argument('--device', default='0', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     parser.add_argument('--profile', action='store_true', help='profile model speed')
     parser.add_argument('--line-profile', action='store_true', help='profile model speed layer by layer')
@@ -91,7 +92,7 @@ if __name__ == '__main__':
     original_model_size = os.path.getsize(opt.pre_weights) / (1024 * 1024)  # 将字节转换为MB
     print(f"剪枝之前模型 {opt.pre_weights} 的存储占用大小: {original_model_size:.2f} MB")
 
-    val_outputs = get_val_result(weights=opt.pre_weights, device=opt.device)
+    val_outputs = get_val_result(weights=opt.pre_weights, device=opt.device, batch_size=opt.val_batch_size)
     print(f"{val_outputs = }")
 
     if opt.calc_initial_yaml:
@@ -197,7 +198,7 @@ if __name__ == '__main__':
     pruned_model_size = os.path.getsize(output_model_path) / (1024 * 1024)  # 将字节转换为MB
     print(f"剪枝之后模型 {output_model_path} 的存储占用大小: {pruned_model_size:.2f} MB")
 
-    val_outputs = get_val_result(weights=output_model_path, device=opt.device)
+    val_outputs = get_val_result(weights=output_model_path, device=opt.device, batch_size=opt.val_batch_size)
     print(f"{val_outputs = }")
 
     if opt.calc_final_yaml:
