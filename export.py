@@ -692,7 +692,7 @@ def main(opt):
         if opt.calc_initial_yaml:
             with open(opt.output_dir / 'logs.yaml', 'w') as f:
                 yaml_data = {
-                    'map50': {'baseline': round(map50, 2), 'method': None},
+                    'map50': {'baseline': round(100*map50, 2), 'method': None},
                     'FLOPs': {'baseline': round(gflops, 2), 'method': None},
                     'Parameters': {'baseline': round(params/1e6, 2), 'method': None},
                     'Infer_times': {'baseline': round(infer_time, 2), 'method': None},
@@ -722,7 +722,7 @@ def main(opt):
                 yaml_data = yaml.safe_load(open(opt.output_dir / 'logs.yaml', 'r'))
                 with open(opt.output_dir / 'logs.yaml', 'w') as f:
                     yaml_data = {
-                        'map50': {'baseline': yaml_data['map50']['baseline'], 'method': round(map50, 2)},
+                        'map50': {'baseline': yaml_data['map50']['baseline'], 'method': round(100*map50, 2)},
                         'FLOPs': {'baseline': yaml_data['FLOPs']['baseline'], 'method': round(gflops, 2)},
                         'Parameters': {'baseline': yaml_data['Parameters']['baseline'], 'method': round(params/1e6, 2)},
                         'Infer_times': {'baseline': yaml_data['Infer_times']['baseline'], 'method': round(infer_time, 2)},

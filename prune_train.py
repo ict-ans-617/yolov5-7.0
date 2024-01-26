@@ -450,7 +450,7 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
         yaml_data = yaml.safe_load(open(yaml_log_path, 'r'))
         with open(yaml_log_path, 'w') as f:
             yaml_data = {
-                'map50': {'baseline': yaml_data['map50']['baseline'], 'method': round(map50, 2)},
+                'map50': {'baseline': yaml_data['map50']['baseline'], 'method': round(100*map50, 2)},
                 'FLOPs': {'baseline': yaml_data['FLOPs']['baseline'], 'method': round(gflops, 2)},
                 'Parameters': {'baseline': yaml_data['Parameters']['baseline'], 'method': round(params/1e6, 2)},
                 'Infer_times': {'baseline': yaml_data['Infer_times']['baseline'], 'method': round(infer_time, 2)},
