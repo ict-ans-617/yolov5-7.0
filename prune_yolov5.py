@@ -89,8 +89,11 @@ if __name__ == '__main__':
     ckpt = torch.load(opt.pre_weights,map_location='cpu')  # 加载预训练权重
     model = ckpt['model'].to(device)  # 获取模型对象并将其移动到指定设备
     model.float()  # 将模型参数转换为全精度浮点数
+    torch.save(model, "temp_model.pth")
     original_model_size = os.path.getsize(opt.pre_weights) / (1024 * 1024)  # 将字节转换为MB
     print(f"剪枝之前模型 {opt.pre_weights} 的存储占用大小: {original_model_size:.2f} MB")
+    original_model_size = os.path.getsize("temp_model.pth") / (1024 * 1024)  # 将字节转换为MB
+    print(f"剪枝之前模型 temp_model.pth 的存储占用大小: {original_model_size:.2f} MB")
 
     val_outputs = get_val_result(weights=opt.pre_weights, device=opt.device, batch_size=opt.val_batch_size)
     print(f"{val_outputs = }")
