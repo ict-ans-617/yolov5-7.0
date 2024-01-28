@@ -458,6 +458,11 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
                 'Output_file': str(best),
             }
             yaml.dump(yaml_data, f)
+        model_vis_save_dir = Path(opt.log_dir).parents[2] / "model_vis" / f"VOC-yolov5"
+        model_vis_save_dir.mkdir(exist_ok=True)
+        torch.save(
+            model,
+            os.path.join(model_vis_save_dir, f"online-fpgm.pth"))
     torch.cuda.empty_cache()
     return results
 
