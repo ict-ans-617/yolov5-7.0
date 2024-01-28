@@ -657,10 +657,22 @@ import numpy as np
 from copy import deepcopy
 
 
-def get_model_info(model_path: str, device, is_test_flops=True):
+def get_model_info(model_path: str, device, is_test_flops=True, is_recompute_model_size=False):
     print(f"getting model info : {model_path}")
     model_size = os.path.getsize(model_path) / (1024 * 1024)  # 将字节转换为MB
     print(f"模型 {model_path} 的存储占用大小: {model_size:.2f} MB")
+    if is_recompute_model_size:
+        ckpt = torch.load(model_path,map_location='cpu')  # 加载预训练权重
+        print(f"{type(ckpt) = }")
+        device = select_device(device)
+        if isinstance(ckpt, dict):
+            model = ckpt['model'].to(device)  # 获取模型对象并将其移动到指定设备
+        else:
+            model = ckpt.to(device)  # 获取模型对象并将其移动到指定设备
+        model.float()  # 将模型参数转换为全精度浮点数
+        torch.save(model, "temp_model.pth")
+        model_size = os.path.getsize("temp_model.pth") / (1024 * 1024)  # 将字节转换为MB
+        print(f"模型 temp_model.pth 的存储占用大小: {model_size:.2f} MB")
 
     val_outputs = get_val_result(weights=model_path, device=device, batch_size=opt.val_batch_size)
     print(f"{val_outputs = }")
@@ -688,7 +700,7 @@ def main(opt):
         opt.output_dir = Path(opt.output_dir)
         opt.output_dir.mkdir(exist_ok=True)
         print(f"量化之前")
-        map50, gflops, params, infer_time, model_size = get_model_info(opt.weights, device=opt.device)
+        map50, gflops, params, infer_time, model_size = get_model_info(opt.weights, device=opt.device, is_recompute_model_size=True)
         if opt.calc_initial_yaml:
             with open(opt.output_dir / 'logs.yaml', 'w') as f:
                 yaml_data = {
