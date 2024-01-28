@@ -188,7 +188,7 @@ if __name__ == '__main__':
     container_model_path = ROOT / f"{Path(opt.cfg).stem.split('_')[0]}.pt"
     print(f"Loading {container_model_path = }")
     ckpt = torch.load(container_model_path)
-    ckpt["model"] = deepcopy(de_parallel(model))
+    ckpt["model"] = deepcopy(de_parallel(model)).float()
     ckpt["date"] = None
 
     output_model_path = output_dir / f'pruned_{Path(opt.cfg).stem}_{opt.pruner}s_{config_list[0]["sparse_ratio"]}.pt'
