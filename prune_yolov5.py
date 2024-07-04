@@ -65,6 +65,8 @@ if __name__ == '__main__':
     parser.add_argument('--profile', action='store_true', help='profile model speed')
     parser.add_argument('--line-profile', action='store_true', help='profile model speed layer by layer')
     parser.add_argument('--test', action='store_true', help='test all yolo*.yaml')
+    parser.add_argument('--sparsity', type=float, default=0.2,
+                        help='target sparsity')
 
     #prune
     parser.add_argument('--pruner', default='fpgm', type=str, help='pruner: agp|taylor|fpgm')
@@ -141,7 +143,7 @@ if __name__ == '__main__':
     config_list = [{
                     # 'op_types': ['Conv2d'],
                     'op_types': ['Conv2d','BatchNorm2d'],
-                    'sparse_ratio': 0.15, 
+                    'sparse_ratio': opt.sparsity, 
                     # 'op_names': [],
                     'exclude_op_names': ['model.24.m.0','model.24.m.1','model.24.m.2']
                     }]

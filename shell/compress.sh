@@ -30,13 +30,14 @@ then
             --pre_weights=${input_path}/best.pt \
             --pruner=${prune_method} \
             --output_dir=${output_path} \
+            --sparsity=${prune_sparisity} \
             --calc_initial_yaml \
             --calc_final_yaml \
 
     CUDA_VISIBLE_DEVICES=${gpus} \
         python ${model_path}/prune_train.py \
             --device=${gpus} \
-            --weights=${output_path}/pruned_yolov5s_voc_fpgms_0.15.pt \
+            --weights=${output_path}/pruned_yolov5s_voc_fpgms_${prune_sparisity}.pt \
             --batch-size=${ft_bs} \
             --log_dir=${output_path} \
             --epochs=${ft_epochs} \
