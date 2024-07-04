@@ -55,6 +55,14 @@ from torchsummary import summary
 from models.yolo import *
 
 
+def container_model(model, model_config="yolov5s"):
+    container_model_path = ROOT / f"{model_config}.pt"
+    print(f"Loading {container_model_path = }")
+    container_ckpt = torch.load(container_model_path)
+    container_ckpt["model"] = deepcopy(de_parallel(model)).float()
+    container_ckpt["date"] = None
+    return container_ckpt
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -91,13 +99,15 @@ if __name__ == '__main__':
     ckpt = torch.load(opt.pre_weights,map_location='cpu')  # 加载预训练权重
     model = ckpt['model'].to(device)  # 获取模型对象并将其移动到指定设备
     model.float()  # 将模型参数转换为全精度浮点数
-    torch.save(model, "temp_model.pth")
     original_model_size = os.path.getsize(opt.pre_weights) / (1024 * 1024)  # 将字节转换为MB
-    print(f"剪枝之前模型 {opt.pre_weights} 的存储占用大小: {original_model_size:.2f} MB")
-    original_model_size = os.path.getsize("temp_model.pth") / (1024 * 1024)  # 将字节转换为MB
-    print(f"剪枝之前模型 temp_model.pth 的存储占用大小: {original_model_size:.2f} MB")
+    print(f"剪枝之前模型 {opt.pre_weights = } 的存储占用大小: {original_model_size:.2f} MB")
+    container_ckpt = container_model(model=model, model_config=Path(opt.cfg).stem.split('_')[0])
+    container_ckpt_path = "container_ckpt.pt"
+    torch.save(container_ckpt, container_ckpt_path)
+    original_model_size = os.path.getsize(container_ckpt_path) / (1024 * 1024)  # 将字节转换为MB
+    print(f"剪枝之前模型 {container_ckpt_path = } 的存储占用大小: {original_model_size:.2f} MB")
 
-    val_outputs = get_val_result(weights=opt.pre_weights, device=opt.device, batch_size=opt.val_batch_size)
+    val_outputs = get_val_result(weights=container_ckpt_path, device=opt.device, batch_size=opt.val_batch_size)
     print(f"{val_outputs = }")
 
     if opt.calc_initial_yaml:
@@ -190,11 +200,7 @@ if __name__ == '__main__':
     # print(model)
     
     # 保存剪枝后的模型
-    container_model_path = ROOT / f"{Path(opt.cfg).stem.split('_')[0]}.pt"
-    print(f"Loading {container_model_path = }")
-    ckpt = torch.load(container_model_path)
-    ckpt["model"] = deepcopy(de_parallel(model)).float()
-    ckpt["date"] = None
+    ckpt = container_model(model=model, model_config=Path(opt.cfg).stem.split('_')[0])
 
     output_model_path = output_dir / f'pruned_{Path(opt.cfg).stem}_{opt.pruner}s_{config_list[0]["sparse_ratio"]}.pt'
     print(f"Saving pruned model to {output_model_path}")
